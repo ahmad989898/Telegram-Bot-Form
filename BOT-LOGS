@@ -1,0 +1,54 @@
+function onFormSubmit() {
+  var sheetID = 'sheet id'; // Get the sheet ID and insert here
+  var spreadsheet = SpreadsheetApp.openById(sheetID);
+  var sheetName = 'texts'; // Update this with your actual sheet name
+  var sheet = spreadsheet.getSheetByName(sheetName); 
+  var editFORM_ID = 'form id'; // Get the gorm ID and insert here
+  var YOUR_BOT_TOKEN = 'bot token'; // Get your bot token and insert here
+  var YOUR_CHAT_ID = 'chat id'; // Get your chat id and insert here
+
+  // Get the last submitted form response
+  var form = FormApp.openById(editFORM_ID);
+  var formResponses = form.getResponses();
+  var latestResponse = formResponses[formResponses.length - 1];
+
+  // Get the timestamp from the form response
+  var responseTimestamp = latestResponse.getTimestamp();
+
+  // Format the timestamp with Malaysia Standard Time (GMT+8)
+  var formattedTimestamp = Utilities.formatDate(responseTimestamp, 'GMT+8', 'dd-MM-yyyy HH:mm:ss');
+
+  var response = latestResponse.getItemResponses();
+
+  var includedCategories = ['COLUMN 1', 'COLUMN 2', 'COLUMN 3', 'COLUMN 4', 'COLUMN 5', 'COLUMN 6','COLUMN 7', 'COLUMN 8']; // Change the name based on your column
+
+  // Initialize the message variable
+  var message = '- DATE & TIME: ' + formattedTimestamp + '\n\n'; // Add the formatted timestamp at the beginning
+
+  for (var i = 0; i < response.length; i++) {
+    var question = response[i].getItem().getTitle();
+    var answer = response[i].getResponse();
+
+    // Include specific categories and add them to the message
+    if (includedCategories.includes(question)) {
+      message += '- ' + question + ':';
+
+      // Check if the current category is "in Column 6" or "Column 7"
+      if (question === 'COLUMN 6' || question === 'COLUMN 7' || question === 'COLUM 8') {
+        message += '\n' + answer + '\n\n'; // Place the answer on a new line
+      } else {
+        message += ' ' + answer + '\n\n'; // Keep the answer on the same line
+      }
+    }
+  }
+
+  // Construct the Telegram API URL
+  var telegramUrl = 'https://api.telegram.org/bot' + YOUR_BOT_TOKEN 
+                    + '/sendMessage?chat_id=' + YOUR_CHAT_ID
+                    + '&text=' + encodeURIComponent(message);
+
+  UrlFetchApp.fetch(telegramUrl);
+  /**
+   * Important step: Go to Triggers ('clock icon' on the left), click on Add Trigger, select "OnForm Submit"
+   */
+}
